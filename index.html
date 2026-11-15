@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GuitarTab</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M3 6h18v1.5H3zm0 4h18v1.5H3zm0 4h18v1.5H3zm0 4h18v1.5H3z" opacity=".35"/><circle cx="8" cy="10.75" r="2.6" fill="currentColor"/><circle cx="15" cy="14.75" r="2.6" fill="currentColor"/></svg>
+      <span>GuitarTab</span>
+    </div>
+    <div class="song" id="song-info"><strong id="song-title">Nenhuma música aberta</strong><span id="song-artist"></span></div>
+    <div class="top-actions">
+      <button class="btn" id="btn-recent" title="Arquivos recentes">Recentes</button>
+      <button class="btn" id="btn-demo" title="Abrir música de demonstração">Demo</button>
+      <label class="btn primary" title="Abrir Guitar Pro, MusicXML ou Capella">
+        Abrir arquivo
+        <input type="file" id="file-input" accept=".gp,.gp3,.gp4,.gp5,.gpx,.xml,.musicxml,.mxl,.capx" hidden>
+      </label>
+      <button class="btn icon only-mobile" id="btn-tracks" title="Canais">☰</button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <section class="panel">
+        <div class="panel-head"><h2>Buscar tablatura</h2></div>
+        <form id="search-form" class="row">
+          <input type="text" id="search-q" placeholder="Artista e música" autocomplete="off">
+        </form>
+        <div class="row wrap search-links">
+          <a class="btn sm" id="s-songsterr" target="_blank" rel="noopener noreferrer">Songsterr ↗</a>
+          <a class="btn sm" id="s-ug" target="_blank" rel="noopener noreferrer">Ultimate Guitar ↗</a>
+          <a class="btn sm" id="s-yt" target="_blank" rel="noopener noreferrer">Vídeos ↗</a>
+        </div>
+        <p class="hint">Abre a busca no site em outra aba. Se o site oferecer o arquivo Guitar Pro, baixe e arraste aqui.</p>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <h2>Canais</h2>
+          <label class="check" title="Esconder vocais, teclados, sopros etc.">
+            <input type="checkbox" id="only-strings"> Só guitarra/baixo
+          </label>
+        </div>
+        <p class="hint">Clique no nome para ver só aquele canal. Use 👁 para ver vários ao mesmo tempo.</p>
+        <ul class="tracks" id="tracks"><li class="empty">Abra um arquivo para ver os canais.</li></ul>
+      </section>
+
+      <section class="panel" id="video-panel">
+        <div class="panel-head"><h2>Vídeo do YouTube</h2></div>
+        <form id="video-form" class="row">
+          <input type="text" id="video-url" placeholder="Link ou ID do vídeo" autocomplete="off">
+          <button class="btn" type="submit">Carregar</button>
+        </form>
+        <div class="yt-wrap" id="yt-wrap" hidden><div id="yt-player"></div></div>
+
+        <div class="sync" id="sync-box" hidden>
+          <div class="sync-status"><span id="sync-count">0 pontos</span><span id="sync-next"></span></div>
+          <div class="row wrap">
+            <button class="btn" id="btn-sync-start" title="Faz o 1º compasso da tab começar no instante atual do vídeo (move toda a sincronia)">Compasso 1 começa aqui</button>
+            <button class="btn rec" id="btn-rec" title="Toque S no início de cada compasso enquanto o vídeo toca">● Gravar</button>
+            <button class="btn primary" id="btn-tap" hidden title="Marque o início do próximo compasso (tecla S)">Marcar (S)</button>
+          </div>
+          <div class="row wrap nudge">
+            <span>Ajuste fino:</span>
+            <button class="btn sm" data-nudge="-100">−100ms</button>
+            <button class="btn sm" data-nudge="-20">−20</button>
+            <button class="btn sm" data-nudge="20">+20</button>
+            <button class="btn sm" data-nudge="100">+100ms</button>
+          </div>
+          <div class="row wrap">
+            <button class="btn sm" id="btn-undo">Desfazer último</button>
+            <button class="btn sm" id="btn-clear">Limpar</button>
+            <button class="btn sm" id="btn-export">Exportar</button>
+            <label class="btn sm">Importar<input type="file" id="sync-import" accept=".json" hidden></label>
+          </div>
+        </div>
+      </section>
+    </aside>
+
+    <main class="main">
+      <div class="viewport" id="viewport">
+        <div id="drop-hint" class="drop-hint">
+          <h1>Leitor de tablaturas</h1>
+          <p>Arraste um arquivo <b>Guitar Pro</b> (.gp, .gp5, .gpx…) ou <b>MusicXML</b> para cá, ou clique em <b>Abrir arquivo</b>.</p>
+          <p>Depois cole um link do YouTube ao lado e sincronize os compassos com o vídeo.</p>
+        </div>
+        <div id="tab"></div>
+      </div>
+      <div class="loading" id="loading" hidden>Renderizando…</div>
+    </main>
+  </div>
+
+  <footer class="playerbar">
+    <div class="group">
+      <button class="btn icon play" id="btn-play" disabled title="Tocar/pausar (Espaço)">▶</button>
+      <button class="btn icon" id="btn-stop" disabled title="Voltar ao início">■</button>
+      <span class="time" id="time">0:00 / 0:00</span>
+    </div>
+    <div class="group seg" id="source" role="group" aria-label="Fonte de áudio">
+      <button data-mode="synth" class="on">Sintetizador</button>
+      <button data-mode="youtube" disabled>YouTube</button>
+    </div>
+    <div class="group">
+      <label title="Velocidade">Vel.
+        <select id="speed">
+          <option value="0.25">25%</option><option value="0.5">50%</option><option value="0.75">75%</option>
+          <option value="0.9">90%</option><option value="1" selected>100%</option><option value="1.25">125%</option><option value="1.5">150%</option>
+        </select>
+      </label>
+      <button class="btn toggle" id="btn-loop" title="Repetir (selecione um trecho arrastando na tab)">⟲ Loop</button>
+      <button class="btn toggle synth-only" id="btn-metro" title="Metrônomo">Metrônomo</button>
+      <button class="btn toggle synth-only" id="btn-countin" title="Contagem antes de começar">Contagem</button>
+    </div>
+    <div class="group">
+      <select id="notation" title="Notação">
+        <option value="tab" selected>Tab</option>
+        <option value="default">Tab + Partitura</option>
+        <option value="score">Partitura</option>
+      </select>
+      <select id="layout" title="Layout">
+        <option value="page" selected>Página</option>
+        <option value="horizontal">Horizontal</option>
+      </select>
+      <select id="zoom" title="Zoom">
+        <option value="0.75">75%</option><option value="0.9">90%</option><option value="1" selected>100%</option>
+        <option value="1.15">115%</option><option value="1.3">130%</option><option value="1.5">150%</option>
+      </select>
+    </div>
+  </footer>
+
+  <dialog id="recent-dialog">
+    <form method="dialog">
+      <h2>Arquivos recentes</h2>
+      <ul id="recent-list" class="recent"></ul>
+      <div class="row end"><button class="btn">Fechar</button></div>
+    </form>
+  </dialog>
+
+  <div class="toast" id="toast" hidden></div>
+
+  <script src="vendor/alphatab/alphaTab.min.js"></script>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
