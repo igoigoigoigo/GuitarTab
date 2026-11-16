@@ -49,8 +49,3 @@ A sincronia fica salva no navegador para cada combinação de música e vídeo. 
 
 A sincronia usa o modo de mídia externa do alphaTab (`PlayerMode.EnabledExternalMedia`) com
 *sync points* por compasso. O app só repassa o tempo do vídeo e o alphaTab faz a interpolação.
-
-## Sobre o Songsterr
-
-As tablaturas do Songsterr são conteúdo licenciado, e a API deles recusa acesso automatizado.
-Por isso este app não baixa nada de lá: ele lê arquivos que você mesmo tem.
